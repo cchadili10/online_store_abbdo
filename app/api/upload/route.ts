@@ -1,7 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import { existsSync } from 'fs';
-import path from 'path';
 
 export async function POST(request: NextRequest) {
     try {
@@ -24,28 +21,22 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'File size too large. Maximum 5MB allowed.' }, { status: 400 });
         }
 
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
+        // For Vercel deployment, you need to use cloud storage like:
+        // - Vercel Blob: https://vercel.com/docs/storage/vercel-blob
+        // - Cloudinary: https://cloudinary.com
+        // - AWS S3: https://aws.amazon.com/s3/
+        // 
+        // This temporary implementation returns an error
+        // See documentation for implementing proper cloud storage
 
-        // Create unique filename
-        const timestamp = Date.now();
-        const originalName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-        const filename = `${timestamp}-${originalName}`;
+        return NextResponse.json(
+            {
+                error: 'File uploads require cloud storage configuration. Please configure Vercel Blob, Cloudinary, or AWS S3.',
+                note: 'Local file system uploads do not work on Vercel serverless functions.'
+            },
+            { status: 501 }
+        );
 
-        // Ensure uploads directory exists
-        const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-        if (!existsSync(uploadsDir)) {
-            await mkdir(uploadsDir, { recursive: true });
-        }
-
-        // Save file
-        const filepath = path.join(uploadsDir, filename);
-        await writeFile(filepath, buffer);
-
-        // Return the public URL
-        const imageUrl = `/uploads/${filename}`;
-
-        return NextResponse.json({ imageUrl }, { status: 200 });
     } catch (error) {
         console.error('Upload error:', error);
         return NextResponse.json({ error: 'Failed to upload image' }, { status: 500 });

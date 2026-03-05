@@ -1,38 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Item } from '@/app/data/items';
-import fs from 'fs';
-import path from 'path';
+import { Item, items as dataItems } from '@/app/data/items';
 
-const itemsFilePath = path.join(process.cwd(), 'app', 'data', 'items.ts');
+// In-memory storage (resets on each serverless function invocation)
+// For production, use a database like Vercel Postgres, MongoDB, or Supabase
+let itemsCache: Item[] = [...dataItems];
 
-// Helper function to read items from file
+// Helper function to get items
 function getItems(): Item[] {
-    const fileContent = fs.readFileSync(itemsFilePath, 'utf-8');
-    const itemsMatch = fileContent.match(/export const items: Item\[\] = (\[[\s\S]*?\]);/);
-    if (itemsMatch) {
-        // Parse the array from the file
-        const itemsString = itemsMatch[1];
-        return eval(itemsString);
-    }
-    return [];
+    return itemsCache;
 }
 
-// Helper function to write items to file
+// Helper function to save items (in-memory only)
 function writeItems(items: Item[]) {
-    const fileContent = `export interface Item {
-  id: number;
-  name: string;
-  description: string;
-  fullDescription: string;
-  image: string;
-  price: number;
-  category: string;
-  stock: number;
-}
-
-export const items: Item[] = ${JSON.stringify(items, null, 2)};
-`;
-    fs.writeFileSync(itemsFilePath, fileContent, 'utf-8');
+    itemsCache = items;
 }
 
 // GET all items
