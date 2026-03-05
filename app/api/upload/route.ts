@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { put } from '@vercel/blob';
 
 export async function POST(request: NextRequest) {
     try {
@@ -21,21 +22,19 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'File size too large. Maximum 5MB allowed.' }, { status: 400 });
         }
 
-        // For Vercel deployment, you need to use cloud storage like:
-        // - Vercel Blob: https://vercel.com/docs/storage/vercel-blob
-        // - Cloudinary: https://cloudinary.com
-        // - AWS S3: https://aws.amazon.com/s3/
-        // 
-        // This temporary implementation returns an error
-        // See documentation for implementing proper cloud storage
+        // Create unique filename
+        const timestamp = Date.now();
+        const originalName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const filename = `${timestamp}-${originalName}`;
 
-        return NextResponse.json(
-            {
-                error: 'File uploads require cloud storage configuration. Please configure Vercel Blob, Cloudinary, or AWS S3.',
-                note: 'Local file system uploads do not work on Vercel serverless functions.'
-            },
-            { status: 501 }
-        );
+        // Upload to Vercel Blob
+        const blob = await put(filename, file, {
+            access: 'public',
+            token: process.env.BLOB_READ_WRITE_TOKEN,
+        });
+
+        // Return the public URL
+        return NextResponse.json({ imageUrl: blob.url }, { status: 200 });
 
     } catch (error) {
         console.error('Upload error:', error);
