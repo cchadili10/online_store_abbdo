@@ -1,5 +1,7 @@
+'use client';
+
 import Link from 'next/link';
-import Image from 'next/image';
+import { useLanguage } from '@/app/providers/LanguageProvider';
 
 interface ItemCardProps {
     id: number;
@@ -10,14 +12,15 @@ interface ItemCardProps {
 }
 
 export default function ItemCard({ id, name, description, image, price }: ItemCardProps) {
+    const { t } = useLanguage();
+
     return (
         <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
             <div className="relative h-48 w-full bg-gray-200">
-                <Image
+                <img
                     src={image}
                     alt={name}
-                    fill
-                    className="object-cover"
+                    className="w-full h-full object-cover"
                 />
             </div>
             <div className="p-4">
@@ -29,7 +32,7 @@ export default function ItemCard({ id, name, description, image, price }: ItemCa
                         href={`/item/${id}`}
                         className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition-colors font-medium"
                     >
-                        View
+                        {t('view')}
                     </Link>
                 </div>
             </div>
